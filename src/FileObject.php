@@ -15,61 +15,49 @@ class FileObject {
      * 文件临时路径
      * @var string 
      */
-    public $file_tmp_path = '';
+    public $fileTmpPath = '';
 
     /**
      * 文件base64
      * @var string 
      */
-    public $file_base64 = '';
+    public $fileBase64 = '';
 
     /**
      * 文件数据流
      * @var string 
      */
-    public $file_data = null;
+    public $fileData = null;
 
     /**
-     * 目录
+     * 保存相对目录
      * @var string 
      */
-    public $dir = '';
+    public $saveDir = '';
 
     /**
-     * 追加日期目录
+     * 是否创建日期目录
      * @var bool 
      */
     public $dateDir = true;
 
     /**
-     * 新文件名
+     * 文件名
      * @var string 
      */
     public $name = '';
 
     /**
-     * 原文件名
+     * 数据库保存的文件地址
      * @var string 
      */
-    public $original_name = '';
+    public $saveFileUrl = '';
 
     /**
-     * 绝对路径
+     * 文件访问地址
      * @var string 
      */
-    public $absolute_path = '';
-
-    /**
-     * 相对路径
-     * @var string 
-     */
-    public $relative_path = '';
-
-    /**
-     * 绝对路径目录
-     * @var string 
-     */
-    public $absolute_dir = '';
+    public $fileUrl = '';
 
     /**
      * 后缀
@@ -78,65 +66,50 @@ class FileObject {
     public $ext = '';
 
     /**
-     * 文件大小
-     * @var int 
+     * 文件存在是否覆盖
+     * @var bool 
      */
-    public $size = 0;
+    public $isCover = false;
 
-    /**
-     * md5
-     * @var string 
-     */
-    public $md5 = '';
-
-    /**
-     * 文件sha1值
-     * @var int 
-     */
-    public $sha1 = '';
-    
     /**
      * 文件限制大小
      * @var int 
      */
-    public $max_size = 1048576;
-    
+    public $maxSize = 1048576;
+
     /**
      * 允许的后缀
      * @var array 
      */
-    public $allow_exts = [];
-
+    public $allowExts = [];
 
     /**
      * 设置路径
-     * @return type
+     * @return $this
      */
-    public function setPath($savePath = '') {
+    public function setPath() {
         if (empty($this->name)) {
             $this->createFileName();
         }
-        if ($this->dateDir) {
-            $year = date("Y");
-            $day = date("md");
-            $this->dir = trim($this->dir, '/') . '/' . $year . "/" . $day;
+        if (empty($this->saveFileUr)) {
+            $dir = trim($this->saveDir, '/');
+            $dateDir = '';
+            if ($this->dateDir) {
+                $year = date("Y");
+                $day = date("md");
+                $dateDir = '/' . $year . "/" . $day . '/';
+            }
+            $dir = $dir . $dateDir;
+            if (empty($dir)) {
+                $this->saveFileUrl = '/' . trim($this->name, '/');
+            } else {
+                $this->saveDir = $dir;
+                $this->saveFileUrl = '/' . trim($this->saveDir, '/') . '/' . trim($this->name, '/');
+            }
         }
-        $this->relative_path = '/' . trim($this->dir, '/') . '/' . $this->name;
-        $this->absolute_dir = trim($savePath, '/') . '/' . trim($this->dir, '/');
-        $this->absolute_path = $this->absolute_dir . '/' . $this->name;
         return $this;
     }
 
-    /**
-     * 设置删除路径
-     * @return type
-     */
-    public function setDelPath($savePath = '') {
-        $this->absolute_path = trim($savePath, '/') . '/' . trim($this->relative_path, '/');
-        return $this;
-    }
-    
-    
     /**
      * 随机生成文件名
      */

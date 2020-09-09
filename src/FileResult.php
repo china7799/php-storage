@@ -51,7 +51,7 @@ class FileResult {
      * @param FileObject $fileObject
      * @return $this
      */
-    public function setSuccessMsg($msg, FileObject $fileObject = null) {
+    public function setSuccessMsg($msg = '上传成功', FileObject $fileObject = null) {
         $this->msg = $msg;
         if(!empty($fileObject)){
             $this->fileObject = $fileObject;
@@ -65,7 +65,7 @@ class FileResult {
      * @param string $msg
      * @return $this
      */
-    public function setErrorMsg($msg) {
+    public function setErrorMsg($msg = '上传失败') {
         $this->msg = $msg;
         $this->success = false;
         return $this;

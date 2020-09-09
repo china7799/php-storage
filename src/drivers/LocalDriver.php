@@ -21,15 +21,25 @@ class LocalDriver extends DriverAbstract {
      * @throws \Exception
      */
     protected function checkPath(FileObject $fileObject) {
-        $fileObject->setPath($this->getConfig('save_path', ''));
-        $absolute_dir = $fileObject->absolute_dir;
-        if (!is_dir($absolute_dir)) {
-            mkdir($absolute_dir, 0777, true);
+        $savePath = $this->getConfig('save_path');
+        $absoluteDir = trim($savePath, '/') . '/' . trim($fileObject->saveDir, '/') . '/';
+        if (!is_dir($absoluteDir)) {
+            mkdir($absoluteDir, 0777, true);
         }
-        if (!is_writable($absolute_dir)) {
+        if (!is_writable($absoluteDir)) {
             throw new \Exception("Storage directory without permission!");
         }
         return true;
+    }
+
+    /**
+     * 获取绝对路径
+     * @param string $saveFileUrl
+     * @return string
+     */
+    protected function getAbsolutePath($saveFileUrl) {
+        $savePath = $this->getConfig('save_path');
+        return trim($savePath, '/') . '/' . trim($saveFileUrl, '/');
     }
 
     /**
@@ -38,32 +48,41 @@ class LocalDriver extends DriverAbstract {
      */
     public function save(FileObject $fileObject): FileResult {
         $fr = FileResult::create();
-        $fr->fileObject = $fileObject;
+        $fileObject->fileUrl = trim($this->getConfig('domain'), '/') . '/' . trim($fileObject->saveFileUrl, '/');
         if (!$this->checkPath($fileObject)) {
+            $fr->fileObject = $fileObject;
             return $fr->setErrorMsg('上传目录创建失败');
         }
+        $fr->fileObject = $fileObject;
+        $absolutePath = $this->getAbsolutePath($fileObject->saveFileUrl);
+        if (!$fileObject->isCover && is_file($absolutePath)) {
+            return $fr->setErrorMsg('目标文件已经存在');
+        }
         //保存文件
-        if (!empty($fileObject->file_data)) {
-            $file = fopen($fileObject->absolute_path, "w+");
-            if (!stream_copy_to_stream($fileObject->file_data, $file)) {
+        if (!empty($fileObject->fileData)) {
+            $file = fopen($absolutePath, "w+");
+            if (!stream_copy_to_stream($fileObject->fileData, $file)) {
                 fclose($file);
-                throw new \Exception("The file save failed!");
+                return $fr->setErrorMsg();
             }
             fclose($file);
-            return $fr->setSuccessMsg('上传成功');
-        } else if (!empty($fileObject->file_tmp_path)) {
-            if (move_uploaded_file($fileObject->file_tmp_path, $fileObject->absolute_path)) {
-                return $fr->setSuccessMsg('上传成功');
-            }
-            else{
-                if(copy($fileObject->file_tmp_path, $fileObject->absolute_path)){
-                    return $fr->setSuccessMsg('上传成功');
+            return $fr->setSuccessMsg();
+        } else if (!empty($fileObject->fileTmpPath)) {
+            if (move_uploaded_file($fileObject->fileTmpPath, $absolutePath)) {
+                return $fr->setSuccessMsg();
+            } else {
+                if (copy($fileObject->fileTmpPath, $absolutePath)) {
+                    return $fr->setSuccessMsg();
                 }
             }
-        } else if (!empty($fileObject->file_base64)) {
-            
+        } else if (!empty($fileObject->fileBase64)) {
+            $fileContent = base64_decode($fileObject->fileBase64);
+            $handle = fopen($absolutePath, "w+");
+            fwrite($handle, $fileContent);
+            fclose($handle);
+            return $fr->setSuccessMsg();
         }
-        return $fr->setErrorMsg('上传失败');
+        return $fr->setErrorMsg();
     }
 
     /**
@@ -72,12 +91,13 @@ class LocalDriver extends DriverAbstract {
      * @return mixed
      */
     public function del(FileObject $fileObject): FileResult {
-        $fileObject->setDelPath($this->getConfig('save_path', ''));
-        $absolute_path = $fileObject->absolute_path;
-        if (is_file($absolute_path) && @unlink($absolute_path)) {
-            return FileResult::create(true, '删除成功');
+        $fr = FileResult::create();
+        $fr->fileObject = $fileObject;
+        $absolutePath = $this->getAbsolutePath($fileObject->saveFileUrl);
+        if (is_file($absolutePath) && @unlink($absolutePath)) {
+            return $fr->setSuccessMsg('删除成功');
         }
-        return FileResult::create(false, '删除失败');
+        return $fr->setErrorMsg('删除失败');
     }
 
 }
