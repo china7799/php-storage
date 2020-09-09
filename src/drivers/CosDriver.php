@@ -69,7 +69,6 @@ class CosDriver extends DriverAbstract {
     public function save(FileObject $fileObject): FileResult {
         $fr = FileResult::create();
         $fr->fileObject = $fileObject;
-
         if (empty($fileObject->fileData)) {
             if (!empty($fileObject->fileTmpPath)) {
                 $fileObject->fileData = file_get_contents($fileObject->fileTmpPath);
@@ -111,7 +110,23 @@ class CosDriver extends DriverAbstract {
      * @param FileObject $fileObject
      */
     public function del(FileObject $fileObject): FileResult {
-        
+        $fr = FileResult::create();
+        $fr->fileObject = $fileObject;
+        $auth = $this->getAuth($fileObject->saveFileUrl, 'DELETE');
+        //请求地址
+        $api = $this->getScheme() . $this->getApiHost(). '/' . trim($fileObject->saveFileUrl, '/');
+        $response = (new \GuzzleHttp\Client())->request('DELETE', $api, [
+            'headers' => [
+                'Authorization' => $auth
+            ]
+        ]);
+        $reason = $response->getStatusCode();
+        $fr->responseHeaders = $response->getHeaders();
+        $fr->responseBody = $response->getBody()->getContents();
+        if ($reason <> 204) {
+            return $fr->setErrorMsg('删除失败');
+        }
+        return $fr->setSuccessMsg('删除成功');
     }
 
     /**

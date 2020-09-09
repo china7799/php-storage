@@ -55,9 +55,8 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
     $fileObject->ext = '.jpg';
     $fileObject->mime = 'image/jpeg';
     $fileObject->saveDir = 'dev/test';
-    $fr = $fileStorage->save($fileObject);
 
-
+    //上传
     $fr = $fileStorage->save($fileObject);
     if($fr->success){
         //文件保存路径
@@ -66,4 +65,11 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
         //$fr->fileObject->fileUrl;
     }
     var_dump($fr);
+
+    //删除
+    $fileObject->saveFileUrl = '/dev/test/2020/0909/13d8320200909171303757.jpg';
+    $fr = $fileStorage->del($fileObject);
+    var_dump($fr);
+
+
    ```

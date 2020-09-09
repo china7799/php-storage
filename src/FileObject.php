@@ -100,10 +100,10 @@ class FileObject {
      * @return $this
      */
     public function setPath() {
-        if (empty($this->name)) {
-            $this->createFileName();
-        }
-        if (empty($this->saveFileUr)) {
+        if (empty($this->saveFileUrl)) {
+            if (empty($this->name)) {
+                $this->createFileName();
+            }
             $dir = trim($this->saveDir, '/');
             $dateDir = '';
             if ($this->dateDir) {
