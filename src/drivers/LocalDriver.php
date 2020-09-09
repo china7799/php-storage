@@ -48,12 +48,10 @@ class LocalDriver extends DriverAbstract {
      */
     public function save(FileObject $fileObject): FileResult {
         $fr = FileResult::create();
-        $fileObject->fileUrl = trim($this->getConfig('domain'), '/') . '/' . trim($fileObject->saveFileUrl, '/');
+        $fr->fileObject = $fileObject;
         if (!$this->checkPath($fileObject)) {
-            $fr->fileObject = $fileObject;
             return $fr->setErrorMsg('上传目录创建失败');
         }
-        $fr->fileObject = $fileObject;
         $absolutePath = $this->getAbsolutePath($fileObject->saveFileUrl);
         if (!$fileObject->isCover && is_file($absolutePath)) {
             return $fr->setErrorMsg('目标文件已经存在');

@@ -31,6 +31,14 @@ class FileResult {
      */
     public $fileObject;
 
+    
+    
+    /**
+     * 第三方响应消息
+     * @var string 
+     */
+    public $response_raw = '';
+    
 
     /**
      * 创建对象

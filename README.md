@@ -1,6 +1,14 @@
 # php-storage
 文件上传
 
+安装
+------------
+
+```
+composer require phpyii/php-storage
+
+```
+
 # 简介
 
 php-storage PHP多存储驱动的文件管理类，支持多种云存储平台。
@@ -16,6 +24,7 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
 # 使用方法
 
    ```php
+    //本地
     $fileStorage = new FileStorage();
     $fileStorage->setDriver([
         'type' => 'local',
@@ -27,6 +36,28 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
     $fileObject = new FileObject();
     $fileObject->fileTmpPath = 'E:/test.php';
     $fileObject->ext = '.php';
+
+    //腾讯cos
+    $fileStorage = new FileStorage();
+    $fileStorage->setDriver([
+        'type' => 'cos',
+        'config' => [
+            'secret_id' => '',
+            'secret_key' => '',
+            'appid' => '',
+            'bucket' => '',
+            'region' => 'ap-beijing',
+            'domain' => '',
+        ],
+    ]);
+    $fileObject = new FileObject();
+    $fileObject->fileTmpPath = 'E:/a.jpg';
+    $fileObject->ext = '.jpg';
+    $fileObject->mime = 'image/jpeg';
+    $fileObject->saveDir = 'dev/test';
+    $fr = $fileStorage->save($fileObject);
+
+
     $fr = $fileStorage->save($fileObject);
     if($fr->success){
         //文件保存路径

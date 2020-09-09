@@ -1,10 +1,6 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+declare (strict_types = 1);
 
 namespace phpyii\storage\drivers;
 
@@ -13,7 +9,7 @@ use phpyii\storage\FileResult;
 
 /**
  * Description of DriverAbstract
- * 驱动抽象类
+ * 存储抽象类
  * @author 最初的梦想
  */
 abstract class DriverAbstract {

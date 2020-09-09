@@ -1,10 +1,6 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+declare (strict_types = 1);
 
 namespace phpyii\storage;
 
@@ -44,6 +40,9 @@ class FileStorage {
             case 'local':
                 $this->driver = new drivers\LocalDriver($driverConfig['config']);
                 break;
+            case 'cos':
+                $this->driver = new drivers\CosDriver($driverConfig['config']);
+                break;
         }
     }
     
@@ -53,7 +52,7 @@ class FileStorage {
      */
     protected function dealFileObject(FileObject $fileObject) {
         $fileObject->setPath();
-        $fileObject->fileUrl = trim($this->driver->getConfig('domain'), '/') . $this->saveFileUrl;
+        $fileObject->fileUrl = trim($this->driver->getConfig('domain'), '/') . '/' . trim($fileObject->saveFileUrl, '/');
         return $fileObject;
     }
     

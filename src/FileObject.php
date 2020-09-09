@@ -64,6 +64,18 @@ class FileObject {
      * @var string 
      */
     public $ext = '';
+    
+    /**
+     * 文件大小
+     * @var int 
+     */
+    public $size = 0;    
+    
+    /**
+     * 文件类型
+     * @var type 
+     */
+    public $mime = '';
 
     /**
      * 文件存在是否覆盖

@@ -1,2 +1,5 @@
-nbproject/
+/nbproject
+/.idea
+/.vscode
+/vendor
 test.php
