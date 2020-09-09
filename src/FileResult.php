@@ -32,12 +32,18 @@ class FileResult {
     public $fileObject;
 
     
+    /**
+     * 第三方响应头
+     * @var string 
+     */
+    public $responseHeaders = [];
+    
     
     /**
      * 第三方响应消息
      * @var string 
      */
-    public $response_raw = '';
+    public $responseBody = '';
     
 
     /**
@@ -60,11 +66,14 @@ class FileResult {
      * @return $this
      */
     public function setSuccessMsg($msg = '上传成功', FileObject $fileObject = null) {
+        $this->success = true;
         $this->msg = $msg;
         if(!empty($fileObject)){
             $this->fileObject = $fileObject;
         }
-        $this->success = true;
+        if(!empty($this->fileObject)){
+            unset($this->fileObject->fileData);
+        }
         return $this;
     }
     
@@ -74,8 +83,11 @@ class FileResult {
      * @return $this
      */
     public function setErrorMsg($msg = '上传失败') {
-        $this->msg = $msg;
         $this->success = false;
+        $this->msg = $msg;
+        if(!empty($this->fileObject)){
+            unset($this->fileObject->fileData);
+        }
         return $this;
     }
     

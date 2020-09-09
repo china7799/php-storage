@@ -78,6 +78,9 @@ class CosDriver extends DriverAbstract {
                 $fileObject->fileData = base64_decode($fileObject->fileBase64);
             }
         }
+        if(empty($fileObject->size)){
+            $fileObject->size = strlen($fileObject->fileData);
+        }
         $file = $fileObject->saveFileUrl;
         $headers = [];
         if (!empty($fileObject->mime)) {
@@ -95,7 +98,8 @@ class CosDriver extends DriverAbstract {
             'headers' => $headers
         ]);
         $reason = $response->getStatusCode();
-        $fr->response_raw = $response->getBody()->getContents();
+        $fr->responseHeaders = $response->getHeaders();
+        $fr->responseBody = $response->getBody()->getContents();
         if ($reason <> 200) {
             return $fr->setErrorMsg();
         }
