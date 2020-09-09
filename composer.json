@@ -1,0 +1,33 @@
+{
+  "name": "phpyii/php-storage",
+  "description": "上传文件",
+  "license": "MIT",
+  "keywords": [
+    "php",
+    "php-storage",
+    "storage",
+    "upload",
+    "file"
+  ],
+  "homepage": "https://github.com/phpyii/php-storage",
+  "authors": [
+    {
+      "name": "lyf",
+      "email": "381296986@qq.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "phpyii\\storage\\": "src/"
+    }
+  },
+  "support": {
+    "issues": "https://github.com/phpyii/php-storage/issues",
+    "source": "https://github.com/phpyii/php-storage"
+  },
+  "require": {
+    "php": ">=5.6.0"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
