@@ -58,6 +58,12 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
     //$fileObject->dateDir = true; //是否自动追加日期目录
     //$fileObject->isCover = true; //是否覆盖
     //$fr = $fileStorage->save($fileObject);
+    //if($fr->success){
+    //    //文件保存路径
+    //    //$fr->fileObject->saveFileUrl;
+    //    //文件访问路径
+    //    //$fr->fileObject->fileUrl;
+    //}
 
     //删除
     //$fr = $fileStorage->del('/dev/test/2020/0910/08e87202009101612179540.jpg');
