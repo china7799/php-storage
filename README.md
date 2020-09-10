@@ -25,7 +25,7 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
 
    ```php
     $fileStorage = new FileStorage();
-    $fileObject = new FileObject();
+    $file = new FileObject();
 
     //本地存储
     $fileStorage->setDriver([
@@ -50,17 +50,17 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
     //]);
 
     //上传
-    //$fileObject->fileTmpPath = 'E:/a.jpg';
-    ////$fileObject->filePath = ''; //新名称带后缀  留空自动生成
-    //$fileObject->ext = '.jpg'; //自动生成新名称时用
-    //$fileObject->mime = 'image/jpeg';
-    //$fileObject->saveDir = 'dev/test'; //保存目录
-    //$fileObject->dateDir = true; //是否自动追加日期目录
-    //$fileObject->isCover = true; //是否覆盖
-    //$fr = $fileStorage->save($fileObject);
+    //$file->fileTmpPath = 'E:/a.jpg';
+    ////$file->filePath = ''; //新名称带后缀  留空自动生成
+    //$file->ext = '.jpg'; //自动生成新名称时用
+    //$file->mime = 'image/jpeg';
+    //$file->saveDir = 'dev/test'; //保存目录
+    //$file->dateDir = true; //是否自动追加日期目录
+    //$file->isCover = true; //是否覆盖
+    //$fr = $fileStorage->save($file);
     //if($fr->success){
     //    //文件保存路径
-    //    //$fr->fileObject->saveFileUrl;
+    //    //$fr->fileObject->filePath;
     //    //文件访问路径
     //    //$fr->fileObject->fileUrl;
     //}
