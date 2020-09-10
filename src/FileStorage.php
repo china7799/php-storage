@@ -52,7 +52,7 @@ class FileStorage {
      */
     protected function dealFileObject(FileObject $fileObject) {
         $fileObject->setPath();
-        $fileObject->fileUrl = trim($this->driver->getConfig('domain'), '/') . '/' . trim($fileObject->saveFileUrl, '/');
+        $fileObject->fileUrl = trim($this->driver->getConfig('domain'), '/') . '/' . trim($fileObject->filePath, '/');
         return $fileObject;
     }
     
@@ -68,11 +68,20 @@ class FileStorage {
 
     /**
      * 删除文件
-     * @param FileObject $fileObject
+     * @param string $filePath
      * @return FileResult
      */
-    public function del(FileObject $fileObject) {
-        return $this->driver->del($this->dealFileObject($fileObject));
+    public function del($filePath) {
+        return $this->driver->del($filePath);
+    }
+    
+    /**
+     * 文件是否存在
+     * @param string $filePath
+     * @return FileResult
+     */
+    public function has($filePath) {
+        return $this->driver->has($filePath);
     }
 
 }

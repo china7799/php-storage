@@ -38,8 +38,7 @@ abstract class DriverAbstract {
         $config['save_path'] = rtrim(str_replace('\\', '/', $config['save_path']), '/');
         $this->config = array_merge($this->config, $config);
     }
-    
-    
+
     /**
      * 获取配置
      * @param string $key
@@ -47,15 +46,35 @@ abstract class DriverAbstract {
      * @return mixed
      */
     public function getConfig($key = null, $default = null) {
-        if(empty($key)){
+        if (empty($key)) {
             return $this->config;
         }
-        if(isset($this->config[$key])){
+        if (isset($this->config[$key])) {
             return $this->config[$key];
         }
         return $default;
     }
-    
+
+    /**
+     * 封装GuzzleHttp请求
+     * @param type $method
+     * @param type $uri
+     * @param array $options
+     * @return type
+     */
+    public function request($method, $uri = '', array $options = []) {
+        try {
+            return (new \GuzzleHttp\Client())->request($method, $uri, $options);
+        } catch (\GuzzleHttp\Exception\RequestException $e) {
+            if ($e->hasResponse()) {
+                return $e->getResponse();
+            }
+        } catch (\Exception $exc) {
+            return false;
+        }
+        return false;
+    }
+
     /**
      * 保存文件
      * @param FileObject $fileObject 文件对象
@@ -65,8 +84,15 @@ abstract class DriverAbstract {
 
     /**
      * 删除文件
-     * @param FileObject $fileObject 文件对象
+     * @param string $filePath  文件路径
      * @return FileResult
      */
-    abstract public function del(FileObject $fileObject);
+    abstract public function del($filePath);
+
+    /**
+     * 文件是否存在
+     * @param string $filePath 文件路径
+     * @return bool
+     */
+    abstract public function has($filePath);
 }

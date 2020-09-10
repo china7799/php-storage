@@ -33,7 +33,7 @@ class CosDriver extends DriverAbstract {
         if (empty($this->config['secret_id']) || empty($this->config['secret_key']) || empty($this->config['bucket']) || empty($this->config['url'])) {
             throw new \Exception("缺少配置参数");
         }
-        if(empty($this->config['domain'])){
+        if (empty($this->config['domain'])) {
             $this->config['domain'] = $this->getScheme() . $this->getApiHost();
         }
         return true;
@@ -43,20 +43,20 @@ class CosDriver extends DriverAbstract {
      * 协议头
      * @return string
      */
-    private function getScheme(){
+    private function getScheme() {
         $scheme = 'http://';
-        if($this->getConfig('use_ssl')){
+        if ($this->getConfig('use_ssl')) {
             $scheme = 'https://';
         }
         return $scheme;
     }
 
-        /**
+    /**
      * 获取host
      * @return string
      */
     private function getApiHost() {
-        $host = $this->getConfig('bucket') . '-' . $this->getConfig('app_id') . '.cos.' . $this->getConfig('region')  .'.myqcloud.com';
+        $host = $this->getConfig('bucket') . '-' . $this->getConfig('app_id') . '.cos.' . $this->getConfig('region') . '.myqcloud.com';
         return $host;
     }
 
@@ -69,6 +69,12 @@ class CosDriver extends DriverAbstract {
     public function save(FileObject $fileObject): FileResult {
         $fr = FileResult::create();
         $fr->fileObject = $fileObject;
+        $filePath = $fileObject->filePath = '/' . trim($fileObject->filePath, '/');
+        if (!$fileObject->isCover) {
+            if ($this->has($filePath)) {
+                return $fr->setErrorMsg('目标文件已经存在');
+            }
+        }
         if (empty($fileObject->fileData)) {
             if (!empty($fileObject->fileTmpPath)) {
                 $fileObject->fileData = file_get_contents($fileObject->fileTmpPath);
@@ -77,10 +83,12 @@ class CosDriver extends DriverAbstract {
                 $fileObject->fileData = base64_decode($fileObject->fileBase64);
             }
         }
-        if(empty($fileObject->size)){
+        if (empty($fileObject->fileData)) {
+            return $fr->setErrorMsg('上传的文件不存在');
+        }
+        if (empty($fileObject->size)) {
             $fileObject->size = strlen($fileObject->fileData);
         }
-        $file = $fileObject->saveFileUrl;
         $headers = [];
         if (!empty($fileObject->mime)) {
             $headers['Content-Type'] = $fileObject->mime;
@@ -88,18 +96,18 @@ class CosDriver extends DriverAbstract {
         if (!empty($fileObject->size)) {
             $headers['Content-Length'] = $fileObject->size;
         }
-        $auth = $this->getAuth($file, 'PUT', [], $headers);
+        $auth = $this->getAuth($filePath, 'PUT', [], $headers);
         $headers['Authorization'] = $auth;
         //请求地址
-        $api = $this->getScheme() . $this->getApiHost(). '/' . trim($file, '/');
-        $response = (new \GuzzleHttp\Client())->request('PUT', $api, [
+        $api = $this->getScheme() . $this->getApiHost() . $filePath;
+        $response = $this->request('PUT', $api, [
             'body' => $fileObject->fileData,
             'headers' => $headers
         ]);
-        $reason = $response->getStatusCode();
+        $statusCode = $response->getStatusCode();
         $fr->responseHeaders = $response->getHeaders();
         $fr->responseBody = $response->getBody()->getContents();
-        if ($reason <> 200) {
+        if ($statusCode <> 200) {
             return $fr->setErrorMsg();
         }
         return $fr->setSuccessMsg();
@@ -107,26 +115,44 @@ class CosDriver extends DriverAbstract {
 
     /**
      * 删除文件
-     * @param FileObject $fileObject
+     * @param string $filePath
+     * @return bool
      */
-    public function del(FileObject $fileObject): FileResult {
+    public function del($filePath): FileResult {
         $fr = FileResult::create();
-        $fr->fileObject = $fileObject;
-        $auth = $this->getAuth($fileObject->saveFileUrl, 'DELETE');
+        $filePath = '/' . trim($filePath, '/');
+        $auth = $this->getAuth($filePath, 'DELETE');
         //请求地址
-        $api = $this->getScheme() . $this->getApiHost(). '/' . trim($fileObject->saveFileUrl, '/');
-        $response = (new \GuzzleHttp\Client())->request('DELETE', $api, [
+        $api = $this->getScheme() . $this->getApiHost() . $filePath;
+        $response = $this->request('DELETE', $api, [
             'headers' => [
                 'Authorization' => $auth
             ]
         ]);
-        $reason = $response->getStatusCode();
+        $statusCode = $response->getStatusCode();
         $fr->responseHeaders = $response->getHeaders();
         $fr->responseBody = $response->getBody()->getContents();
-        if ($reason <> 204) {
+        if ($statusCode <> 204) {
             return $fr->setErrorMsg('删除失败');
         }
         return $fr->setSuccessMsg('删除成功');
+    }
+
+    /**
+     * 文件是否存在
+     * @param string $filePath
+     * @return bool
+     */
+    public function has($filePath): bool {
+        $response = $this->getMetadata($filePath);
+        $statusCode = $response->getStatusCode();
+        if($statusCode == 403){
+            throw new \Exception('没有权限');
+        }
+        if (in_array($statusCode, [200, 304])) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -178,6 +204,22 @@ class CosDriver extends DriverAbstract {
             $tmp[strtolower($key)] = $vo;
         }
         return http_build_query($tmp);
+    }
+
+    /**
+     * @param string $filePath
+     * @return array|bool
+     */
+    private function getMetadata($filePath) {
+        $filePath = '/' . trim($filePath, '/');
+        $auth = $this->getAuth($filePath, 'HEAD');
+        //请求地址
+        $api = $this->getScheme() . $this->getApiHost() . $filePath;
+        return $this->request('HEAD', $api, [
+                    'headers' => [
+                        'Authorization' => $auth
+                    ]
+        ]);
     }
 
 }

@@ -51,7 +51,7 @@ class FileObject {
      * 数据库保存的文件地址
      * @var string 
      */
-    public $saveFileUrl = '';
+    public $filePath = '';
 
     /**
      * 文件访问地址
@@ -100,7 +100,7 @@ class FileObject {
      * @return $this
      */
     public function setPath() {
-        if (empty($this->saveFileUrl)) {
+        if (empty($this->filePath)) {
             if (empty($this->name)) {
                 $this->createFileName();
             }
@@ -113,10 +113,10 @@ class FileObject {
             }
             $dir = $dir . $dateDir;
             if (empty($dir)) {
-                $this->saveFileUrl = '/' . trim($this->name, '/');
+                $this->filePath = '/' . trim($this->name, '/');
             } else {
                 $this->saveDir = $dir;
-                $this->saveFileUrl = '/' . trim($this->saveDir, '/') . '/' . trim($this->name, '/');
+                $this->filePath = '/' . trim($this->saveDir, '/') . '/' . trim($this->name, '/');
             }
         }
         return $this;
