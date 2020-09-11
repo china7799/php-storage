@@ -24,7 +24,13 @@ class FileResult {
      */
     public $msg = '';
 
-    
+    /**
+     * 第三方http状态码
+     * @var int 
+     */
+    public $statusCode;
+
+
     /**
      * 第三方响应头
      * @var string 

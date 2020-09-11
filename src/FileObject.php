@@ -158,6 +158,17 @@ class FileObject {
         if(empty($this->mime) && !empty($this->name)){
             $this->mime = MimeTypes::getMimetype($this->name);
         }
+        if (empty($this->fileData)) {
+            if (!empty($this->fileTmpPath)) {
+                $fileObject->fileData = file_get_contents($this->fileTmpPath);
+            }
+            if (!empty($this->fileBase64)) {
+                $fileObject->fileData = base64_decode($this->fileBase64);
+            }
+        }
+        if (empty($this->size) && !empty($this->fileData)) {
+            $fileObject->size = strlen($this->fileData);
+        }
         return $this;
     }
 

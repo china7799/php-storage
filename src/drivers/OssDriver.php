@@ -7,11 +7,23 @@ namespace phpyii\storage\drivers;
 use phpyii\storage\FileResult;
 
 /**
- * Description of CosDriver
- * 腾讯云存储
+ * Description of OssDriver
+ * 阿里云存储
  * @author 最初的梦想
  */
-class CosDriver extends DriverAbstract {
+class OssDriver extends DriverAbstract {
+
+    const OSS_HOST_TYPE_NORMAL = "normal"; //http://bucket.oss-cn-hangzhou.aliyuncs.com/object
+    const OSS_HOST_TYPE_IP = "ip";  //http://1.1.1.1/bucket/object
+    const OSS_HOST_TYPE_SPECIAL = 'special'; //http://bucket.guizhou.gov/object
+    const OSS_HOST_TYPE_CNAME = "cname";  //http://mydomain.com/object
+
+    /**
+     * 域名类型
+     * @var type 
+     */
+
+    private $hostType = self::OSS_HOST_TYPE_NORMAL;
 
     /**
      * 配置
@@ -20,9 +32,8 @@ class CosDriver extends DriverAbstract {
     protected $config = [
         'secret_id' => '',
         'secret_key' => '',
-        'app_id' => '',
         'bucket' => '',
-        'region' => '', //'ap-beijing'
+        'region' => '', //endpoint oss-cn-hangzhou
         'domain' => '',
         'use_ssl' => false,
     ];
@@ -33,8 +44,8 @@ class CosDriver extends DriverAbstract {
      * @throws \Exception
      */
     public function checkConfig() {
-        if (empty($this->config['secret_id']) || empty($this->config['secret_key']) || empty($this->config['app_id']) || empty($this->config['bucket']) || empty($this->config['region'])) {
-            throw new \Exception("腾讯云存储缺少配置参数");
+        if (empty($this->config['secret_id']) || empty($this->config['secret_key']) || empty($this->config['bucket']) || empty($this->config['region'])) {
+            throw new \Exception("阿里云存储缺少配置参数");
         }
         if (empty($this->config['domain'])) {
             $this->config['domain'] = $this->getScheme() . $this->getApiHost();
@@ -42,12 +53,6 @@ class CosDriver extends DriverAbstract {
         return true;
     }
 
-
-    /**
-     * 上传文件
-     * @return FileResult
-     * @throws \Exception
-     */
     public function save(): FileResult {
         $fileObject = $this->fileObject;
         $fr = FileResult::create();
@@ -64,20 +69,13 @@ class CosDriver extends DriverAbstract {
         if (!empty($fileObject->mime)) {
             $headers['Content-Type'] = $fileObject->mime;
         }
-        if (!empty($fileObject->size)) {
-            $headers['Content-Length'] = $fileObject->size;
-        }
-        $auth = $this->getAuth($filePath, 'PUT', [], $headers);
-        $headers['Authorization'] = $auth;
-        //请求地址
-        $api = $this->getScheme() . $this->getApiHost() . $filePath;
-        $response = $this->request('PUT', $api, [
+        $response = $this->request('PUT', $this->getApiUrl($filePath, 'PUT', $fileObject->mime), [
             'body' => $fileObject->fileData,
             'headers' => $headers
         ]);
         $statusCode = $response->getStatusCode();
-        $fr->statusCode = $statusCode;
         $fr->responseHeaders = $response->getHeaders();
+        //xml结果处理simplexml_load_string
         $fr->responseBody = $response->getBody()->getContents();
         if ($statusCode <> 200) {
             return $fr->setErrorMsg();
@@ -86,9 +84,10 @@ class CosDriver extends DriverAbstract {
     }
 
     /**
-     * 删除文件
-     * @param string $filePath
-     * @return bool
+     * 删除
+     * @param type $filePath
+     * @return FileResult
+     * @throws \Exception
      */
     public function del($filePath = ''): FileResult {
         $fr = FileResult::create();
@@ -96,17 +95,10 @@ class CosDriver extends DriverAbstract {
             $filePath = $this->fileObject->filePath;
         }
         $filePath = '/' . trim($filePath, '/');
-        $auth = $this->getAuth($filePath, 'DELETE');
-        //请求地址
-        $api = $this->getScheme() . $this->getApiHost() . $filePath;
-        $response = $this->request('DELETE', $api, [
-            'headers' => [
-                'Authorization' => $auth
-            ]
-        ]);
+        $response = $this->request('DELETE', $this->getApiUrl($filePath, 'DELETE'));
         $statusCode = $response->getStatusCode();
-        $fr->statusCode = $statusCode;
         $fr->responseHeaders = $response->getHeaders();
+        //xml结果处理simplexml_load_string
         $fr->responseBody = $response->getBody()->getContents();
         if ($statusCode <> 204) {
             return $fr->setErrorMsg('删除失败');
@@ -138,7 +130,6 @@ class CosDriver extends DriverAbstract {
         return $fr->setErrorMsg('文件不存在');
     }
 
-
     /**
      * 协议头
      * @return string
@@ -156,61 +147,54 @@ class CosDriver extends DriverAbstract {
      * @return string
      */
     private function getApiHost() {
-        $host = $this->getConfig('bucket') . '-' . $this->getConfig('app_id') . '.cos.' . $this->getConfig('region') . '.myqcloud.com';
-        return $host;
+        $endpoint = $this->config['region'];
+        $ret_endpoint = null;
+        if (strpos($endpoint, 'http://') === 0) {
+            $ret_endpoint = substr($endpoint, strlen('http://'));
+        } elseif (strpos($endpoint, 'https://') === 0) {
+            $ret_endpoint = substr($endpoint, strlen('https://'));
+            $this->config['use_ssl'] = true;
+        } else {
+            if (strrchr($endpoint, '.com') == '.com') {
+                $ret_endpoint = $this->getConfig('bucket') . '.' . $endpoint;
+            } else {
+                //bucket.oss-cn-hangzhou.aliyuncs.com
+                $ret_endpoint = $this->getConfig('bucket') . '.' . $endpoint . '.' . 'aliyuncs.com';
+            }
+        }
+        return $ret_endpoint;
     }
-    
-    
+
     /**
-     * 认证
+     * 获取请求地址
      * @param type $name
      * @param type $type
-     * @param type $query
-     * @param type $header
+     * @param type $mime
      * @return type
      */
-    private function getAuth($name, $type, $query = [], $header = []) {
-        $time = time();
-        $expiredTime = $time + 1800;
-        $keyTime = $time . ';' . $expiredTime;
-        $signKey = hash_hmac("sha1", $keyTime, $this->config['secret_key']);
-        $httpString = implode("\n", [strtolower($type), $name, $this->httpParameters($query), $this->httpParameters($header), '']);
-        $stringToSign = implode("\n", ['sha1', $keyTime, sha1($httpString), '']);
-        $signature = hash_hmac('sha1', $stringToSign, $signKey);
-        $data = [];
-        $data['q-sign-algorithm'] = 'sha1';
-        $data['q-ak'] = $this->config['secret_id'];
-        $data['q-sign-time'] = $keyTime;
-        $data['q-key-time'] = $keyTime;
-        $data['q-header-list'] = $this->urlParamList($header);
-        $data['q-url-param-list'] = $this->urlParamList($query);
-        $data['q-signature'] = $signature;
-        $sign = [];
-        foreach ($data as $key => $vo) {
-            $sign[] = $key . '=' . $vo;
+    private function getApiUrl($name, $type, $mime = '') {
+        $time = time() + 1800;
+        $policy = [];
+        $policy[] = $type;
+        $policy[] = '';
+        if ($mime) {
+            $policy[] = $mime;
+        } else {
+            $policy[] = '';
         }
-        return implode('&', $sign);
+        $policy[] = $time;
+        $policy[] = '/' . $this->config['bucket'] . '/' . trim($name, '/');
+        $policy = implode("\n", $policy);
+        $signature = base64_encode(hash_hmac('sha1', $policy, $this->config['secret_key'], true));
+        $data = [
+            'OSSAccessKeyId' => $this->config['access_id'],
+            'Expires' => $time,
+            'Signature' => $signature,
+        ];
+        $api = $this->getScheme() . $this->getApiHost();
+        return $api . '/' . trim($name, '/') . '?' . http_build_query($data);
     }
 
-    private function urlParamList($data) {
-        $list = array_keys($data);
-        sort($list);
-        $list = array_map(function ($vo) {
-            return urlencode($vo);
-        }, $list);
-        return strtolower(implode(';', $list));
-    }
-
-    private function httpParameters($data) {
-        $keys = array_keys($data);
-        sort($keys);
-        $data = array_merge(array_flip($keys), $data);
-        $tmp = [];
-        foreach ($data as $key => $vo) {
-            $tmp[strtolower($key)] = $vo;
-        }
-        return http_build_query($tmp);
-    }
 
     /**
      * @param string $filePath
@@ -218,14 +202,8 @@ class CosDriver extends DriverAbstract {
      */
     private function getMetadata($filePath) {
         $filePath = '/' . trim($filePath, '/');
-        $auth = $this->getAuth($filePath, 'HEAD');
-        //请求地址
-        $api = $this->getScheme() . $this->getApiHost() . $filePath;
-        return $this->request('HEAD', $api, [
-                    'headers' => [
-                        'Authorization' => $auth
-                    ]
-        ]);
+        return $this->request('HEAD', $this->getApiUrl($filePath, 'HEAD'));
     }
-
+    
+    
 }

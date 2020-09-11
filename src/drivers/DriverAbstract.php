@@ -26,7 +26,7 @@ abstract class DriverAbstract {
      * @var array 
      */
     protected $config = [
-        'domain' => '',
+        'domain' => 'http://127.0.0.1',
         'save_path' => ''
     ];
 
@@ -46,8 +46,11 @@ abstract class DriverAbstract {
      * @param array $config
      */
     public function setConfig($config) {
-        $config['save_path'] = rtrim(str_replace('\\', '/', $config['save_path']), '/');
+        if(!empty($config['save_path'])){
+            $config['save_path'] = rtrim(str_replace('\\', '/', $config['save_path']), '/');
+        }
         $this->config = array_merge($this->config, $config);
+        $this->checkConfig();
     }
 
 
@@ -99,6 +102,12 @@ abstract class DriverAbstract {
     }
 
     /**
+     * 检测配置
+     * @return bool
+     */
+    abstract public function checkConfig();
+    
+    /**
      * 保存文件
      * @return FileResult 上传结果
      */
@@ -114,7 +123,7 @@ abstract class DriverAbstract {
     /**
      * 文件是否存在
      * @param string $filePath 文件路径
-     * @return bool
+     * @return FileResult
      */
     abstract public function has($filePath = '');
 }

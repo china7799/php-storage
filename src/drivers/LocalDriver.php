@@ -15,6 +15,19 @@ use phpyii\storage\FileResult;
 class LocalDriver extends DriverAbstract {
 
     /**
+     * 检测配置
+     * @return boolean
+     * @throws \Exception
+     */
+    public function checkConfig() {
+        if (empty($this->config['save_path']) || empty($this->config['domain'])) {
+            throw new \Exception("本地存储缺少配置参数");
+        }
+        return true;
+    }
+    
+    
+    /**
      * 检查保存路径
      * @param FileObject $fileObject 文件对象
      * @return boolean
@@ -107,15 +120,16 @@ class LocalDriver extends DriverAbstract {
      * @param string $filePath
      * @return FileResult
      */
-    public function has($filePath = ''): bool {
+    public function has($filePath = ''): FileResult {
+        $fr = FileResult::create();
         if(empty($filePath) && !empty($this->fileObject)){
             $filePath = $this->fileObject->filePath;
         }
         $absolutePath = $this->getAbsolutePath($filePath);
         if (is_file($absolutePath)) {
-            return true;
+            return $fr->setSuccessMsg('文件存在');
         }
-        return false;
+        return $fr->setErrorMsg('文件不存在');
     }
 
 }
