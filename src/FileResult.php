@@ -6,7 +6,7 @@ namespace phpyii\storage;
 
 
 /**
- * Description of UploadResult
+ * Description of FileResult
  * 上传或保存结果
  * @author 最初的梦想
  */
@@ -23,13 +23,6 @@ class FileResult {
      * @var string 
      */
     public $msg = '';
-    
-    
-    /**
-     * 文件对象
-     * @var FileObject 
-     */
-    public $fileObject;
 
     
     /**
@@ -62,18 +55,11 @@ class FileResult {
     /**
      * 设置成功消息
      * @param string $msg
-     * @param FileObject $fileObject
      * @return $this
      */
-    public function setSuccessMsg($msg = '上传成功', FileObject $fileObject = null) {
+    public function setSuccessMsg($msg = '上传成功') {
         $this->success = true;
         $this->msg = $msg;
-        if(!empty($fileObject)){
-            $this->fileObject = $fileObject;
-        }
-        if(!empty($this->fileObject)){
-            unset($this->fileObject->fileData);
-        }
         return $this;
     }
     
@@ -85,9 +71,6 @@ class FileResult {
     public function setErrorMsg($msg = '上传失败') {
         $this->success = false;
         $this->msg = $msg;
-        if(!empty($this->fileObject)){
-            unset($this->fileObject->fileData);
-        }
         return $this;
     }
     

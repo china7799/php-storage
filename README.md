@@ -24,11 +24,10 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
 # 使用方法
 
    ```php
-    $fileStorage = new FileStorage();
     $file = new FileObject();
 
     //本地存储
-    $fileStorage->setDriver([
+    $file->setDriver([
         'type' => 'local',
         'config' => [
             'domain' => 'http://www.baidu.com',
@@ -37,7 +36,7 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
     ]);
 
     //腾讯cos
-    //$fileStorage->setDriver([
+    //$file->setDriver([
     //    'type' => 'cos',
     //    'config' => [
     //        'secret_id' => '',
@@ -51,26 +50,38 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
 
     //上传
     //$file->fileTmpPath = 'E:/a.jpg';
-    ////$file->filePath = ''; //新名称带后缀  留空自动生成
+    ////$file->filePath = ''; //带后缀的新文件名称  留空自动生成
     //$file->ext = '.jpg'; //自动生成新名称时用
-    //$file->mime = 'image/jpeg';
+    ////$file->mime = 'image/jpeg'; //留空通过后缀自动获取
     //$file->saveDir = 'dev/test'; //保存目录
     //$file->dateDir = true; //是否自动追加日期目录
     //$file->isCover = true; //是否覆盖
-    //$fr = $fileStorage->save($file);
-    //if($fr->success){
+    //$bool = $file->save();
+    //if($bool){
     //    //文件保存路径
-    //    //$fr->fileObject->filePath;
+    //    //$file->filePath;
     //    //文件访问路径
-    //    //$fr->fileObject->fileUrl;
+    //    //$file->fileUrl;
     //}
+    // else{
+    //    var_dump($file->getMsg());
+    // }
 
     //删除
-    //$fr = $fileStorage->del('/dev/test/2020/0910/08e87202009101612179540.jpg');
+    //$bool = $file->del('/dev/test/2020/0910/08e87202009101612179540.jpg');
+    //或者
+    //$file->filePath = '/dev/test/2020/0910/08e87202009101612179540.jpg';
+    //$bool = $file->del();
 
     //文件是否存在
-    $fr = $fileStorage->has('/dev/test/2020/0910/0e80b202009101613326313.jpg');
+    $bool = $file->has('/dev/test/2020/0910/0e80b202009101613326313.jpg');
+    //或者
+    //$file->filePath = '/dev/test/2020/0910/08e87202009101612179540.jpg';
+    //$bool = $file->has();
 
-    var_dump($fr);
+    var_dump($bool);
+    var_dump($file);
+    //请求结果
+    var_dump($file->getResult());
 
    ```

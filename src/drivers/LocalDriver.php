@@ -44,11 +44,10 @@ class LocalDriver extends DriverAbstract {
 
     /**
      * 保存文件
-     * @param FileObject $fileObject 文件对象
      */
-    public function save(FileObject $fileObject): FileResult {
+    public function save(): FileResult {
+        $fileObject = $this->fileObject;
         $fr = FileResult::create();
-        $fr->fileObject = $fileObject;
         if (!$this->checkPath($fileObject)) {
             return $fr->setErrorMsg('上传目录创建失败');
         }
@@ -88,10 +87,16 @@ class LocalDriver extends DriverAbstract {
      * @param string $filePath
      * @return mixed
      */
-    public function del($filePath): FileResult {
+    public function del($filePath = ''): FileResult {
         $fr = FileResult::create();
+        if(empty($filePath) && !empty($this->fileObject)){
+            $filePath = $this->fileObject->filePath;
+        }
         $absolutePath = $this->getAbsolutePath($filePath);
-        if (is_file($absolutePath) && @unlink($absolutePath)) {
+        if (!is_file($absolutePath)) {
+            return $fr->setSuccessMsg('文件不存在');
+        }
+        if (@unlink($absolutePath)) {
             return $fr->setSuccessMsg('删除成功');
         }
         return $fr->setErrorMsg('删除失败');
@@ -102,7 +107,10 @@ class LocalDriver extends DriverAbstract {
      * @param string $filePath
      * @return FileResult
      */
-    public function has($filePath): bool {
+    public function has($filePath = ''): bool {
+        if(empty($filePath) && !empty($this->fileObject)){
+            $filePath = $this->fileObject->filePath;
+        }
         $absolutePath = $this->getAbsolutePath($filePath);
         if (is_file($absolutePath)) {
             return true;

@@ -14,6 +14,17 @@ use phpyii\storage\FileResult;
  */
 abstract class DriverAbstract {
 
+    /**
+     * 文件对象
+     * @var FileObject 
+     */
+    protected $fileObject = null;
+
+
+    /**
+     * 驱动配置
+     * @var array 
+     */
     protected $config = [
         'domain' => '',
         'save_path' => ''
@@ -29,7 +40,7 @@ abstract class DriverAbstract {
             $this->setConfig($config);
         }
     }
-
+    
     /**
      * 设置配置
      * @param array $config
@@ -38,6 +49,7 @@ abstract class DriverAbstract {
         $config['save_path'] = rtrim(str_replace('\\', '/', $config['save_path']), '/');
         $this->config = array_merge($this->config, $config);
     }
+
 
     /**
      * 获取配置
@@ -55,6 +67,17 @@ abstract class DriverAbstract {
         return $default;
     }
 
+    
+    /**
+     * 设置文件
+     * @param FileObject $fileObject
+     */
+    public function setFileObject(FileObject $fileObject){
+        $this->fileObject = $fileObject;
+    }
+
+    
+    
     /**
      * 封装GuzzleHttp请求
      * @param type $method
@@ -77,22 +100,21 @@ abstract class DriverAbstract {
 
     /**
      * 保存文件
-     * @param FileObject $fileObject 文件对象
      * @return FileResult 上传结果
      */
-    abstract public function save(FileObject $fileObject);
+    abstract public function save();
 
     /**
      * 删除文件
      * @param string $filePath  文件路径
      * @return FileResult
      */
-    abstract public function del($filePath);
+    abstract public function del($filePath = '');
 
     /**
      * 文件是否存在
      * @param string $filePath 文件路径
      * @return bool
      */
-    abstract public function has($filePath);
+    abstract public function has($filePath = '');
 }

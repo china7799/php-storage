@@ -14,6 +14,10 @@ use phpyii\storage\FileResult;
  */
 class CosDriver extends DriverAbstract {
 
+    /**
+     * 配置
+     * @var array 
+     */
     protected $config = [
         'secret_id' => '',
         'secret_key' => '',
@@ -61,14 +65,13 @@ class CosDriver extends DriverAbstract {
     }
 
     /**
-     * 
-     * @param  FileObject $fileObject
+     * 上传文件
      * @return FileResult
      * @throws \Exception
      */
-    public function save(FileObject $fileObject): FileResult {
+    public function save(): FileResult {
+        $fileObject = $this->fileObject;
         $fr = FileResult::create();
-        $fr->fileObject = $fileObject;
         $filePath = $fileObject->filePath = '/' . trim($fileObject->filePath, '/');
         if (!$fileObject->isCover) {
             if ($this->has($filePath)) {
@@ -118,8 +121,11 @@ class CosDriver extends DriverAbstract {
      * @param string $filePath
      * @return bool
      */
-    public function del($filePath): FileResult {
+    public function del($filePath = ''): FileResult {
         $fr = FileResult::create();
+        if(empty($filePath) && !empty($this->fileObject)){
+            $filePath = $this->fileObject->filePath;
+        }
         $filePath = '/' . trim($filePath, '/');
         $auth = $this->getAuth($filePath, 'DELETE');
         //请求地址
@@ -143,7 +149,10 @@ class CosDriver extends DriverAbstract {
      * @param string $filePath
      * @return bool
      */
-    public function has($filePath): bool {
+    public function has($filePath = ''): bool {
+        if(empty($filePath) && !empty($this->fileObject)){
+            $filePath = $this->fileObject->filePath;
+        }
         $response = $this->getMetadata($filePath);
         $statusCode = $response->getStatusCode();
         if($statusCode == 403){

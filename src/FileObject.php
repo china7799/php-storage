@@ -4,6 +4,8 @@ declare (strict_types = 1);
 
 namespace phpyii\storage;
 
+use phpyii\storage\MimeTypes;
+
 /**
  * Description of FileObject
  * 文件对象
@@ -96,10 +98,42 @@ class FileObject {
     public $allowExts = [];
 
     /**
-     * 设置路径
-     * @return $this
+     * 结果
+     * @var FileResult 
      */
-    public function setPath() {
+    protected $fileResult = null;
+    
+    
+    /**
+     * 文件驱动
+     * @var DriverAbstract 
+     */
+    protected $driver = null;
+
+    /**
+     * 构建函数
+     * @param array $driverConfig
+     */
+    public function __construct(array $driverConfig = []) {
+        if (!empty($driverConfig)) {
+            $this->setDriver($driverConfig);
+        }
+    }
+    
+    /**
+     * 设置驱动
+     * @param array $driverConfig
+     */
+    public function setDriver(array $driverConfig = []) {
+        $driverClass = 'phpyii\storage\drivers\\'.ucfirst($driverConfig['type']).'Driver';
+        $this->driver = new $driverClass($driverConfig['config']);
+    }
+    
+    
+    /**
+     * 处理文件
+     */
+    protected function dealFileObject() {
         if (empty($this->filePath)) {
             if (empty($this->name)) {
                 $this->createFileName();
@@ -119,15 +153,57 @@ class FileObject {
                 $this->filePath = '/' . trim($this->saveDir, '/') . '/' . trim($this->name, '/');
             }
         }
+        $this->fileUrl = trim($this->driver->getConfig('domain'), '/') . '/' . trim($this->filePath, '/');
+        //文件类型
+        if(empty($this->mime) && !empty($this->name)){
+            $this->mime = MimeTypes::getMimetype($this->name);
+        }
         return $this;
     }
 
     /**
      * 随机生成文件名
      */
-    public function createFileName() {
+    protected function createFileName() {
         $name = substr(md5(uniqid()), 0, 5) . date('YmdHis') . rand(0, 9999);
         $this->name = strtolower($name . trim($this->ext));
     }
 
+    
+    /**
+     * 调用方法
+     * @param type $method
+     * @param type $arguments
+     * @return type
+     */
+    public function __call($method, $arguments) {
+        $this->driver->setFileObject($this->dealFileObject());
+        $result = call_user_func_array(array($this->driver, $method), $arguments);
+        if($result instanceof FileResult){
+            $this->fileResult = $result;
+            return $this->fileResult->success;
+        }
+        return $result;
+    }
+    
+    /**
+     * 获取结果
+     * @return type
+     */
+    public function getResult() {
+        return $this->fileResult;
+    }
+    
+    /**
+     * 获取结果
+     * @return type
+     */
+    public function getMsg() {
+        if(empty($this->fileResult)){
+            return '';
+        }
+        return $this->fileResult->msg;
+    }
+    
+    
 }
