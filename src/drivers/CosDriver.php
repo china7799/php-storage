@@ -49,15 +49,11 @@ class CosDriver extends DriverAbstract {
      */
     public function save(): FileResult {
         $fr = FileResult::create();
-        if (empty($this->fileObject->fileData)) {
-            return $fr->setErrorMsg('上传的文件不存在');
+        $beforeSave = $this->beforeSave();
+        if (!$beforeSave['success']) {
+            return $fr->setErrorMsg($beforeSave['msg']);
         }
         $filePath = $this->fileObject->filePath = '/' . trim($this->fileObject->filePath, '/');
-        if (!$this->fileObject->isCover) {
-            if ($this->has($filePath)) {
-                return $fr->setErrorMsg('目标文件已经存在');
-            }
-        }
         $headers = [];
         if (!empty($this->fileObject->mime)) {
             $headers['Content-Type'] = $this->fileObject->mime;
@@ -127,13 +123,17 @@ class CosDriver extends DriverAbstract {
         $fr->responseHeaders = $response->getHeaders();
         $fr->responseBody = $response->getBody()->getContents();
         $fr->statusCode = $statusCode;
-        if ($statusCode == 403) {
-            throw new \Exception('没有权限');
+        if ($statusCode == 404) {
+            return $fr->setErrorMsg('文件不存在');
         }
-        if (in_array($statusCode, [200, 304])) {
-            return $fr->setSuccessMsg('文件存在');
-        }
-        return $fr->setErrorMsg('文件不存在');
+        return $fr->setSuccessMsg('文件存在');
+//        if (in_array($statusCode, [401, 403])) {
+//            return $fr->setErrorMsg('没有权限');
+//        }
+//        if (in_array($statusCode, [200, 304])) {
+//            return $fr->setSuccessMsg('文件存在');
+//        }
+//        return $fr->setErrorMsg('文件不存在');
     }
 
     /**

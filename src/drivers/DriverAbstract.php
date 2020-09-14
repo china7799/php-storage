@@ -20,7 +20,6 @@ abstract class DriverAbstract {
      */
     protected $fileObject = null;
 
-
     /**
      * 驱动配置
      * @var array 
@@ -40,19 +39,18 @@ abstract class DriverAbstract {
             $this->setConfig($config);
         }
     }
-    
+
     /**
      * 设置配置
      * @param array $config
      */
     public function setConfig($config) {
-        if(!empty($config['save_path'])){
+        if (!empty($config['save_path'])) {
             $config['save_path'] = rtrim(str_replace('\\', '/', $config['save_path']), '/');
         }
         $this->config = array_merge($this->config, $config);
         $this->checkConfig();
     }
-
 
     /**
      * 获取配置
@@ -70,12 +68,11 @@ abstract class DriverAbstract {
         return $default;
     }
 
-    
     /**
      * 设置文件
      * @param FileObject $fileObject
      */
-    public function setFileObject(FileObject $fileObject){
+    public function setFileObject(FileObject $fileObject) {
         $this->fileObject = $fileObject;
         //把文件路径或者base字符串转为二进制文件内容
         if (empty($this->fileObject->fileData)) {
@@ -93,8 +90,6 @@ abstract class DriverAbstract {
         }
     }
 
-    
-    
     /**
      * 封装GuzzleHttp请求
      * @param type $method
@@ -116,28 +111,47 @@ abstract class DriverAbstract {
     }
 
     /**
+     * 上传前检查
+     */
+    protected function beforeSave() {
+        if (empty($this->fileObject->fileData)) {
+            return ['success' => false, 'msg' => '上传的文件不存在'];
+        }
+        if ($this->fileObject->size > $this->fileObject->maxSize) {
+            return ['success' => false, 'msg' => '上传文件过大'];
+        }
+        if (!$this->fileObject->isCover) {
+            $fr = $this->has($this->fileObject->filePath);
+            if (!$fr->success) {
+                return ['success' => false, 'msg' => $fr->msg];
+            }
+        }
+        return ['success' => true, 'msg' => 'ok'];
+    }
+
+    /**
      * 检测配置
      * @return bool
      */
     abstract public function checkConfig(): bool;
-    
+
     /**
      * 保存文件
      * @return FileResult 上传结果
      */
-    abstract public function save(): FileResult ;
+    abstract public function save(): FileResult;
 
     /**
      * 删除文件
      * @param string $filePath  文件路径
      * @return FileResult
      */
-    abstract public function del($filePath = ''): FileResult ;
+    abstract public function del($filePath = ''): FileResult;
 
     /**
      * 文件是否存在
      * @param string $filePath 文件路径
      * @return FileResult
      */
-    abstract public function has($filePath = ''): FileResult ;
+    abstract public function has($filePath = ''): FileResult;
 }

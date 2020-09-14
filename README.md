@@ -48,6 +48,7 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
     //        'bucket' => '',
     //        'region' => 'ap-beijing',
     //        'domain' => '', //留空自动设置
+    //        'use_ssl' => false,
     //    ],
     //]);
 
@@ -60,8 +61,23 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
     //        'bucket' => '',
     //        'region' => 'oss-cn-hangzhou',
     //        'domain' => '', //留空自动设置
+    //        'use_ssl' => false,
     //    ],
     //]);
+
+    //七牛
+    //$file->setDriver([
+    //    'type' => 'qiniu',
+    //    'config' => [
+    //        'access_key' => '',
+    //        'secret_key' => '',
+    //        'bucket' => '',
+    //        'domain' => 'http://www.baidu.com',
+    //        'api_host' => 'http://up.qiniup.com',
+    //        'use_ssl' => false,
+    //    ],
+    //]);
+
 
     //其他继承了DriverAbstract类的所有自定义类都可以
     //$customClass = new CustomClass();
