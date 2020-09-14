@@ -5,6 +5,7 @@ declare (strict_types = 1);
 namespace phpyii\storage;
 
 use phpyii\storage\MimeTypes;
+use phpyii\storage\drivers\DriverAbstract;
 
 /**
  * Description of FileObject
@@ -122,11 +123,16 @@ class FileObject {
     
     /**
      * 设置驱动
-     * @param array $driverConfig
+     * @param array|DriverAbstract $driver
      */
-    public function setDriver(array $driverConfig = []) {
-        $driverClass = 'phpyii\storage\drivers\\'.ucfirst($driverConfig['type']).'Driver';
-        $this->driver = new $driverClass($driverConfig['config']);
+    public function setDriver($driver = []) {
+        if($driver instanceof DriverAbstract){
+            $this->driver = $driver;
+        }
+        else{
+            $driverClass = 'phpyii\storage\drivers\\'.ucfirst($driver['type']).'Driver';
+            $this->driver = new $driverClass($driver['config']);
+        }
     }
     
     
@@ -158,16 +164,16 @@ class FileObject {
         if(empty($this->mime) && !empty($this->name)){
             $this->mime = MimeTypes::getMimetype($this->name);
         }
-        if (empty($this->fileData)) {
-            if (!empty($this->fileTmpPath)) {
-                $fileObject->fileData = file_get_contents($this->fileTmpPath);
-            }
-            if (!empty($this->fileBase64)) {
-                $fileObject->fileData = base64_decode($this->fileBase64);
-            }
-        }
+//        if (empty($this->fileData)) {
+//            if (!empty($this->fileTmpPath)) {
+//                $this->fileData = file_get_contents($this->fileTmpPath);
+//            }
+//            if (!empty($this->fileBase64)) {
+//                $this->fileData = base64_decode($this->fileBase64);
+//            }
+//        }
         if (empty($this->size) && !empty($this->fileData)) {
-            $fileObject->size = strlen($this->fileData);
+            $this->size = strlen($this->fileData);
         }
         return $this;
     }

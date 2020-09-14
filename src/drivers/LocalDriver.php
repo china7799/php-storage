@@ -15,27 +15,43 @@ use phpyii\storage\FileResult;
 class LocalDriver extends DriverAbstract {
 
     /**
+     * 设置文件 覆盖父类
+     * @param FileObject $fileObject
+     */
+    public function setFileObject(FileObject $fileObject) {
+        $this->fileObject = $fileObject;
+        //计算文件大小
+        if (empty($this->fileObject->size)) {
+            if (!empty($this->fileObject->fileData)) {
+                $this->fileObject->size = strlen($this->fileObject->fileData);
+            } else if (!empty($this->fileObject->fileTmpPath)) {
+                $this->fileObject->size = filesize($this->fileObject->fileTmpPath);
+            } else if (!empty($this->fileObject->fileBase64)) {
+                $this->fileObject->size = strlen($this->fileObject->fileBase64);
+            }
+        }
+    }
+
+    /**
      * 检测配置
      * @return boolean
      * @throws \Exception
      */
-    public function checkConfig() {
+    public function checkConfig(): bool {
         if (empty($this->config['save_path']) || empty($this->config['domain'])) {
             throw new \Exception("本地存储缺少配置参数");
         }
         return true;
     }
-    
-    
+
     /**
      * 检查保存路径
-     * @param FileObject $fileObject 文件对象
      * @return boolean
      * @throws \Exception
      */
-    protected function checkPath(FileObject $fileObject) {
+    protected function checkPath() {
         $savePath = $this->getConfig('save_path');
-        $absoluteDir = trim($savePath, '/') . '/' . trim($fileObject->saveDir, '/') . '/';
+        $absoluteDir = trim($savePath, '/') . '/' . trim($this->fileObject->saveDir, '/') . '/';
         if (!is_dir($absoluteDir)) {
             mkdir($absoluteDir, 0777, true);
         }
@@ -57,36 +73,43 @@ class LocalDriver extends DriverAbstract {
 
     /**
      * 保存文件
+     * @return FileResult
      */
     public function save(): FileResult {
-        $fileObject = $this->fileObject;
         $fr = FileResult::create();
-        if (!$this->checkPath($fileObject)) {
+        if (!$this->checkPath()) {
             return $fr->setErrorMsg('上传目录创建失败');
         }
-        $absolutePath = $this->getAbsolutePath($fileObject->filePath);
-        if (!$fileObject->isCover && is_file($absolutePath)) {
+        if ($this->fileObject->size > $this->fileObject->maxSize) {
+            return $fr->setErrorMsg('上传文件过大');
+        }
+        $absolutePath = $this->getAbsolutePath($this->fileObject->filePath);
+        if (!$this->fileObject->isCover && is_file($absolutePath)) {
             return $fr->setErrorMsg('目标文件已经存在');
         }
         //保存文件
-        if (!empty($fileObject->fileData)) {
-            $file = fopen($absolutePath, "w+");
-            if (!stream_copy_to_stream($fileObject->fileData, $file)) {
-                fclose($file);
-                return $fr->setErrorMsg();
-            }
-            fclose($file);
+        if (!empty($this->fileObject->fileData)) {
+            $handle = fopen($absolutePath, "w+");
+            fwrite($handle, $this->fileObject->fileData);
+            fclose($handle);
             return $fr->setSuccessMsg();
-        } else if (!empty($fileObject->fileTmpPath)) {
-            if (move_uploaded_file($fileObject->fileTmpPath, $absolutePath)) {
+        } else if (!empty($this->fileObject->fileTmpPath)) {
+            if (move_uploaded_file($this->fileObject->fileTmpPath, $absolutePath)) {
+                return $fr->setSuccessMsg();
+            } else if (copy($this->fileObject->fileTmpPath, $absolutePath)) {
+                //@unlink($this->fileObject->fileTmpPath);
                 return $fr->setSuccessMsg();
             } else {
-                if (copy($fileObject->fileTmpPath, $absolutePath)) {
-                    return $fr->setSuccessMsg();
-                }
+                $fold = fopen($this->fileObject->fileTmpPath, 'r');
+                $fnew = fopen($absolutePath, 'w+');
+                stream_copy_to_stream($fold, $fnew);
+                fclose($fold);
+                fclose($fnew);
+                //@unlink($this->fileObject->fileTmpPath);
+                return $fr->setSuccessMsg();
             }
-        } else if (!empty($fileObject->fileBase64)) {
-            $fileContent = base64_decode($fileObject->fileBase64);
+        } else if (!empty($this->fileObject->fileBase64)) {
+            $fileContent = base64_decode($this->fileObject->fileBase64);
             $handle = fopen($absolutePath, "w+");
             fwrite($handle, $fileContent);
             fclose($handle);
@@ -98,11 +121,11 @@ class LocalDriver extends DriverAbstract {
     /**
      * 删除文件
      * @param string $filePath
-     * @return mixed
+     * @return FileResult
      */
     public function del($filePath = ''): FileResult {
         $fr = FileResult::create();
-        if(empty($filePath) && !empty($this->fileObject)){
+        if (empty($filePath) && !empty($this->fileObject)) {
             $filePath = $this->fileObject->filePath;
         }
         $absolutePath = $this->getAbsolutePath($filePath);
@@ -114,7 +137,7 @@ class LocalDriver extends DriverAbstract {
         }
         return $fr->setErrorMsg('删除失败');
     }
-    
+
     /**
      * 文件是否存在
      * @param string $filePath
@@ -122,7 +145,7 @@ class LocalDriver extends DriverAbstract {
      */
     public function has($filePath = ''): FileResult {
         $fr = FileResult::create();
-        if(empty($filePath) && !empty($this->fileObject)){
+        if (empty($filePath) && !empty($this->fileObject)) {
             $filePath = $this->fileObject->filePath;
         }
         $absolutePath = $this->getAbsolutePath($filePath);

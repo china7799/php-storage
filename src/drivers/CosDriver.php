@@ -32,7 +32,7 @@ class CosDriver extends DriverAbstract {
      * @return boolean
      * @throws \Exception
      */
-    public function checkConfig() {
+    public function checkConfig(): bool {
         if (empty($this->config['secret_id']) || empty($this->config['secret_key']) || empty($this->config['app_id']) || empty($this->config['bucket']) || empty($this->config['region'])) {
             throw new \Exception("腾讯云存储缺少配置参数");
         }
@@ -42,37 +42,35 @@ class CosDriver extends DriverAbstract {
         return true;
     }
 
-
     /**
      * 上传文件
      * @return FileResult
      * @throws \Exception
      */
     public function save(): FileResult {
-        $fileObject = $this->fileObject;
         $fr = FileResult::create();
-        if (empty($fileObject->fileData)) {
+        if (empty($this->fileObject->fileData)) {
             return $fr->setErrorMsg('上传的文件不存在');
         }
-        $filePath = $fileObject->filePath = '/' . trim($fileObject->filePath, '/');
-        if (!$fileObject->isCover) {
+        $filePath = $this->fileObject->filePath = '/' . trim($this->fileObject->filePath, '/');
+        if (!$this->fileObject->isCover) {
             if ($this->has($filePath)) {
                 return $fr->setErrorMsg('目标文件已经存在');
             }
         }
         $headers = [];
-        if (!empty($fileObject->mime)) {
-            $headers['Content-Type'] = $fileObject->mime;
+        if (!empty($this->fileObject->mime)) {
+            $headers['Content-Type'] = $this->fileObject->mime;
         }
-        if (!empty($fileObject->size)) {
-            $headers['Content-Length'] = $fileObject->size;
+        if (!empty($this->fileObject->size)) {
+            $headers['Content-Length'] = $this->fileObject->size;
         }
         $auth = $this->getAuth($filePath, 'PUT', [], $headers);
         $headers['Authorization'] = $auth;
         //请求地址
         $api = $this->getScheme() . $this->getApiHost() . $filePath;
         $response = $this->request('PUT', $api, [
-            'body' => $fileObject->fileData,
+            'body' => $this->fileObject->fileData,
             'headers' => $headers
         ]);
         $statusCode = $response->getStatusCode();
@@ -92,7 +90,7 @@ class CosDriver extends DriverAbstract {
      */
     public function del($filePath = ''): FileResult {
         $fr = FileResult::create();
-        if(empty($filePath) && !empty($this->fileObject)){
+        if (empty($filePath) && !empty($this->fileObject)) {
             $filePath = $this->fileObject->filePath;
         }
         $filePath = '/' . trim($filePath, '/');
@@ -121,7 +119,7 @@ class CosDriver extends DriverAbstract {
      */
     public function has($filePath = ''): FileResult {
         $fr = FileResult::create();
-        if(empty($filePath) && !empty($this->fileObject)){
+        if (empty($filePath) && !empty($this->fileObject)) {
             $filePath = $this->fileObject->filePath;
         }
         $response = $this->getMetadata($filePath);
@@ -129,7 +127,7 @@ class CosDriver extends DriverAbstract {
         $fr->responseHeaders = $response->getHeaders();
         $fr->responseBody = $response->getBody()->getContents();
         $fr->statusCode = $statusCode;
-        if($statusCode == 403){
+        if ($statusCode == 403) {
             throw new \Exception('没有权限');
         }
         if (in_array($statusCode, [200, 304])) {
@@ -137,7 +135,6 @@ class CosDriver extends DriverAbstract {
         }
         return $fr->setErrorMsg('文件不存在');
     }
-
 
     /**
      * 协议头
@@ -159,8 +156,7 @@ class CosDriver extends DriverAbstract {
         $host = $this->getConfig('bucket') . '-' . $this->getConfig('app_id') . '.cos.' . $this->getConfig('region') . '.myqcloud.com';
         return $host;
     }
-    
-    
+
     /**
      * 认证
      * @param type $name

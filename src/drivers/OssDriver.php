@@ -12,17 +12,15 @@ use phpyii\storage\FileResult;
  * @author 最初的梦想
  */
 class OssDriver extends DriverAbstract {
-
-    const OSS_HOST_TYPE_NORMAL = "normal"; //http://bucket.oss-cn-hangzhou.aliyuncs.com/object
-    const OSS_HOST_TYPE_IP = "ip";  //http://1.1.1.1/bucket/object
-    const OSS_HOST_TYPE_SPECIAL = 'special'; //http://bucket.guizhou.gov/object
-    const OSS_HOST_TYPE_CNAME = "cname";  //http://mydomain.com/object
+//    const OSS_HOST_TYPE_NORMAL = "normal"; //http://bucket.oss-cn-hangzhou.aliyuncs.com/object
+//    const OSS_HOST_TYPE_IP = "ip";  //http://1.1.1.1/bucket/object
+//    const OSS_HOST_TYPE_SPECIAL = 'special'; //http://bucket.guizhou.gov/object
+//    const OSS_HOST_TYPE_CNAME = "cname";  //http://mydomain.com/object
 
     /**
      * 域名类型
-     * @var type 
+     * @var string 
      */
-
     private $hostType = self::OSS_HOST_TYPE_NORMAL;
 
     /**
@@ -43,7 +41,7 @@ class OssDriver extends DriverAbstract {
      * @return boolean
      * @throws \Exception
      */
-    public function checkConfig() {
+    public function checkConfig(): bool {
         if (empty($this->config['secret_id']) || empty($this->config['secret_key']) || empty($this->config['bucket']) || empty($this->config['region'])) {
             throw new \Exception("阿里云存储缺少配置参数");
         }
@@ -53,24 +51,27 @@ class OssDriver extends DriverAbstract {
         return true;
     }
 
+    /**
+     * 保存文件
+     * @return FileResult
+     */
     public function save(): FileResult {
-        $fileObject = $this->fileObject;
         $fr = FileResult::create();
-        if (empty($fileObject->fileData)) {
+        if (empty($this->fileObject->fileData)) {
             return $fr->setErrorMsg('上传的文件不存在');
         }
-        $filePath = $fileObject->filePath = '/' . trim($fileObject->filePath, '/');
-        if (!$fileObject->isCover) {
+        $filePath = $this->fileObject->filePath = '/' . trim($this->fileObject->filePath, '/');
+        if (!$this->fileObject->isCover) {
             if ($this->has($filePath)) {
                 return $fr->setErrorMsg('目标文件已经存在');
             }
         }
         $headers = [];
-        if (!empty($fileObject->mime)) {
-            $headers['Content-Type'] = $fileObject->mime;
+        if (!empty($this->fileObject->mime)) {
+            $headers['Content-Type'] = $this->fileObject->mime;
         }
-        $response = $this->request('PUT', $this->getApiUrl($filePath, 'PUT', $fileObject->mime), [
-            'body' => $fileObject->fileData,
+        $response = $this->request('PUT', $this->getApiUrl($filePath, 'PUT', $this->fileObject->mime), [
+            'body' => $this->fileObject->fileData,
             'headers' => $headers
         ]);
         $statusCode = $response->getStatusCode();
@@ -84,14 +85,14 @@ class OssDriver extends DriverAbstract {
     }
 
     /**
-     * 删除
-     * @param type $filePath
+     * 删除文件
+     * @param string $filePath
      * @return FileResult
      * @throws \Exception
      */
     public function del($filePath = ''): FileResult {
         $fr = FileResult::create();
-        if(empty($filePath) && !empty($this->fileObject)){
+        if (empty($filePath) && !empty($this->fileObject)) {
             $filePath = $this->fileObject->filePath;
         }
         $filePath = '/' . trim($filePath, '/');
@@ -113,7 +114,7 @@ class OssDriver extends DriverAbstract {
      */
     public function has($filePath = ''): FileResult {
         $fr = FileResult::create();
-        if(empty($filePath) && !empty($this->fileObject)){
+        if (empty($filePath) && !empty($this->fileObject)) {
             $filePath = $this->fileObject->filePath;
         }
         $response = $this->getMetadata($filePath);
@@ -121,7 +122,7 @@ class OssDriver extends DriverAbstract {
         $fr->responseHeaders = $response->getHeaders();
         $fr->responseBody = $response->getBody()->getContents();
         $fr->statusCode = $statusCode;
-        if($statusCode == 403){
+        if ($statusCode == 403) {
             throw new \Exception('没有权限');
         }
         if (in_array($statusCode, [200, 304])) {
@@ -195,7 +196,6 @@ class OssDriver extends DriverAbstract {
         return $api . '/' . trim($name, '/') . '?' . http_build_query($data);
     }
 
-
     /**
      * @param string $filePath
      * @return array|bool
@@ -204,6 +204,5 @@ class OssDriver extends DriverAbstract {
         $filePath = '/' . trim($filePath, '/');
         return $this->request('HEAD', $this->getApiUrl($filePath, 'HEAD'));
     }
-    
-    
+
 }

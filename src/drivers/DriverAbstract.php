@@ -77,6 +77,20 @@ abstract class DriverAbstract {
      */
     public function setFileObject(FileObject $fileObject){
         $this->fileObject = $fileObject;
+        //把文件路径或者base字符串转为二进制文件内容
+        if (empty($this->fileObject->fileData)) {
+            if (!empty($this->fileObject->fileTmpPath)) {
+                $this->fileObject->fileData = file_get_contents($this->fileObject->fileTmpPath);
+            }
+            if (!empty($this->fileObject->fileBase64)) {
+                $this->fileObject->fileData = base64_decode($this->fileObject->fileBase64);
+                //清空base64 释放内存
+                $this->fileObject->fileBase64 = '';
+            }
+        }
+        if (empty($this->fileObject->size) && !empty($this->fileObject->fileData)) {
+            $this->fileObject->size = strlen($this->fileObject->fileData);
+        }
     }
 
     
@@ -105,25 +119,25 @@ abstract class DriverAbstract {
      * 检测配置
      * @return bool
      */
-    abstract public function checkConfig();
+    abstract public function checkConfig(): bool;
     
     /**
      * 保存文件
      * @return FileResult 上传结果
      */
-    abstract public function save();
+    abstract public function save(): FileResult ;
 
     /**
      * 删除文件
      * @param string $filePath  文件路径
      * @return FileResult
      */
-    abstract public function del($filePath = '');
+    abstract public function del($filePath = ''): FileResult ;
 
     /**
      * 文件是否存在
      * @param string $filePath 文件路径
      * @return FileResult
      */
-    abstract public function has($filePath = '');
+    abstract public function has($filePath = ''): FileResult ;
 }
