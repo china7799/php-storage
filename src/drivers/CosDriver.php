@@ -70,9 +70,9 @@ class CosDriver extends DriverAbstract {
             'headers' => $headers
         ]);
         $statusCode = $response->getStatusCode();
-        $fr->statusCode = $statusCode;
         $fr->responseHeaders = $response->getHeaders();
         $fr->responseBody = $response->getBody()->getContents();
+        $fr->statusCode = $statusCode;
         if ($statusCode <> 200) {
             return $fr->setErrorMsg();
         }
@@ -99,9 +99,9 @@ class CosDriver extends DriverAbstract {
             ]
         ]);
         $statusCode = $response->getStatusCode();
-        $fr->statusCode = $statusCode;
         $fr->responseHeaders = $response->getHeaders();
         $fr->responseBody = $response->getBody()->getContents();
+        $fr->statusCode = $statusCode;
         if ($statusCode <> 204) {
             return $fr->setErrorMsg('删除失败');
         }
@@ -210,7 +210,7 @@ class CosDriver extends DriverAbstract {
 
     /**
      * @param string $filePath
-     * @return array|bool
+     * @return ResponseInterface
      */
     private function getMetadata($filePath) {
         $filePath = '/' . trim($filePath, '/');

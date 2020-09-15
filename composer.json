@@ -30,7 +30,7 @@
     "source": "https://github.com/phpyii/php-storage"
   },
   "require": {
-    "php": ">=5.6.0",
+    "php": ">=7.1.0",
     "guzzlehttp/guzzle": "^6.0"
   },
   "minimum-stability": "dev",

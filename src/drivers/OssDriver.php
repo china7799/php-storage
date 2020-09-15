@@ -74,6 +74,7 @@ class OssDriver extends DriverAbstract {
         $fr->responseHeaders = $response->getHeaders();
         //xml结果处理simplexml_load_string
         $fr->responseBody = $response->getBody()->getContents();
+        $fr->statusCode = $statusCode;
         if ($statusCode <> 200) {
             return $fr->setErrorMsg();
         }
@@ -97,6 +98,7 @@ class OssDriver extends DriverAbstract {
         $fr->responseHeaders = $response->getHeaders();
         //xml结果处理simplexml_load_string
         $fr->responseBody = $response->getBody()->getContents();
+        $fr->statusCode = $statusCode;
         if ($statusCode <> 204) {
             return $fr->setErrorMsg('删除失败');
         }
@@ -198,7 +200,7 @@ class OssDriver extends DriverAbstract {
 
     /**
      * @param string $filePath
-     * @return array|bool
+     * @return ResponseInterface
      */
     private function getMetadata($filePath) {
         $filePath = '/' . trim($filePath, '/');
