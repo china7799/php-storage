@@ -74,20 +74,6 @@ abstract class DriverAbstract {
      */
     public function setFileObject(FileObject $fileObject) {
         $this->fileObject = $fileObject;
-        //把文件路径或者base字符串转为二进制文件内容
-        if (empty($this->fileObject->fileData)) {
-            if (!empty($this->fileObject->fileTmpPath)) {
-                $this->fileObject->fileData = file_get_contents($this->fileObject->fileTmpPath);
-            }
-            if (!empty($this->fileObject->fileBase64)) {
-                $this->fileObject->fileData = base64_decode($this->fileObject->fileBase64);
-                //清空base64 释放内存
-                $this->fileObject->fileBase64 = '';
-            }
-        }
-        if (empty($this->fileObject->size) && !empty($this->fileObject->fileData)) {
-            $this->fileObject->size = strlen($this->fileObject->fileData);
-        }
     }
 
     /**
@@ -119,6 +105,9 @@ abstract class DriverAbstract {
         }
         if ($this->fileObject->size > $this->fileObject->maxSize) {
             return ['success' => false, 'msg' => '上传文件过大'];
+        }
+        if(!empty($this->fileObject->allowExts) && !in_array($this->fileObject->ext, $this->fileObject->allowExts)){
+            return ['success' => false, 'msg' => '上传文件格式不正确'];
         }
         if (!$this->fileObject->isCover) {
             $fr = $this->has($this->fileObject->filePath);

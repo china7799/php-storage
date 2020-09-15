@@ -1,34 +1,67 @@
 <?php
 
-
 declare (strict_types = 1);
 
 namespace phpyii\storage;
-
 
 /**
  * Description of MimeTypes
  * from https://github.com/aliyun/aliyun-oss-php-sdk
  * @author 最初的梦想
  */
-class MimeTypes
-{
+class MimeTypes {
+
     /**
      * Get the content-type value of http header from the file's extension name.
      *
      * @param string $name Default file extension name.
      * @return string content-type
      */
-    public static function getMimetype($name)
-    {
-        $parts = explode('.', $name);
-        if (count($parts) > 1) {
-            $ext = strtolower(end($parts));
+    public static function getMimetypeByName($name) {
+        if(!empty($name)){
+            $parts = explode('.', $name);
+            if (count($parts) > 1) {
+                $ext = strtolower(end($parts));
+                if (isset(self::$mime_types[$ext])) {
+                    return self::$mime_types[$ext];
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get the content-type value of http header from the file's extension name.
+     *
+     * @param string $ext Default file extension name.
+     * @return string content-type
+     */
+    public static function getMimetypeByExt($ext) {
+        if (!empty($ext)) {
+            $ext = strtolower(trim($ext, '.'));
             if (isset(self::$mime_types[$ext])) {
                 return self::$mime_types[$ext];
             }
         }
-
+        return null;
+    }
+    
+    
+    /**
+     * Get the content-type value of http header from the file's extension name.
+     *
+     * @param string $mime Default file extension name.
+     * @return string extension
+     */
+    public static function getExtension($mime) {
+        if(!empty($mime)){
+            $mime = strtolower($mime);
+            //$newMimes = array_flip(array_unique(self::$mime_types));
+            $newMimes = array_flip(self::$mime_types);
+            if (isset($newMimes[$mime])) {
+                return $newMimes[$mime];
+            }
+        }
         return null;
     }
 
@@ -261,4 +294,5 @@ class MimeTypes
         'xslt' => 'application/xslt+xml',
         'xul' => 'application/vnd.mozilla.xul+xml',
     );
+
 }

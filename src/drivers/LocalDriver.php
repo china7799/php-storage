@@ -18,19 +18,19 @@ class LocalDriver extends DriverAbstract {
      * 设置文件 覆盖父类
      * @param FileObject $fileObject
      */
-    public function setFileObject(FileObject $fileObject) {
-        $this->fileObject = $fileObject;
-        //计算文件大小
-        if (empty($this->fileObject->size)) {
-            if (!empty($this->fileObject->fileData)) {
-                $this->fileObject->size = strlen($this->fileObject->fileData);
-            } else if (!empty($this->fileObject->fileTmpPath)) {
-                $this->fileObject->size = filesize($this->fileObject->fileTmpPath);
-            } else if (!empty($this->fileObject->fileBase64)) {
-                $this->fileObject->size = strlen($this->fileObject->fileBase64);
-            }
-        }
-    }
+//    public function setFileObject(FileObject $fileObject) {
+//        $this->fileObject = $fileObject;
+//        //计算文件大小
+//        if (empty($this->fileObject->size)) {
+//            if (!empty($this->fileObject->fileData)) {
+//                $this->fileObject->size = strlen($this->fileObject->fileData);
+//            } else if (!empty($this->fileObject->fileTmpPath)) {
+//                $this->fileObject->size = filesize($this->fileObject->fileTmpPath);
+//            } else if (!empty($this->fileObject->fileBase64)) {
+//                $this->fileObject->size = strlen($this->fileObject->fileBase64);
+//            }
+//        }
+//    }
 
     /**
      * 检测配置
@@ -80,41 +80,40 @@ class LocalDriver extends DriverAbstract {
         if (!$this->checkPath()) {
             return $fr->setErrorMsg('上传目录创建失败');
         }
-        if ($this->fileObject->size > $this->fileObject->maxSize) {
-            return $fr->setErrorMsg('上传文件过大');
+        $beforeSave = $this->beforeSave();
+        if (!$beforeSave['success']) {
+            return $fr->setErrorMsg($beforeSave['msg']);
         }
         $absolutePath = $this->getAbsolutePath($this->fileObject->filePath);
-        if (!$this->fileObject->isCover && is_file($absolutePath)) {
-            return $fr->setErrorMsg('目标文件已经存在');
-        }
         //保存文件
         if (!empty($this->fileObject->fileData)) {
             $handle = fopen($absolutePath, "w+");
             fwrite($handle, $this->fileObject->fileData);
             fclose($handle);
             return $fr->setSuccessMsg();
-        } else if (!empty($this->fileObject->fileTmpPath)) {
-            if (move_uploaded_file($this->fileObject->fileTmpPath, $absolutePath)) {
-                return $fr->setSuccessMsg();
-            } else if (copy($this->fileObject->fileTmpPath, $absolutePath)) {
-                //@unlink($this->fileObject->fileTmpPath);
-                return $fr->setSuccessMsg();
-            } else {
-                $fold = fopen($this->fileObject->fileTmpPath, 'r');
-                $fnew = fopen($absolutePath, 'w+');
-                stream_copy_to_stream($fold, $fnew);
-                fclose($fold);
-                fclose($fnew);
-                //@unlink($this->fileObject->fileTmpPath);
-                return $fr->setSuccessMsg();
-            }
-        } else if (!empty($this->fileObject->fileBase64)) {
-            $fileContent = base64_decode($this->fileObject->fileBase64);
-            $handle = fopen($absolutePath, "w+");
-            fwrite($handle, $fileContent);
-            fclose($handle);
-            return $fr->setSuccessMsg();
-        }
+        } 
+//        else if (!empty($this->fileObject->fileTmpPath)) {
+//            if (move_uploaded_file($this->fileObject->fileTmpPath, $absolutePath)) {
+//                return $fr->setSuccessMsg();
+//            } else if (copy($this->fileObject->fileTmpPath, $absolutePath)) {
+//                //@unlink($this->fileObject->fileTmpPath);
+//                return $fr->setSuccessMsg();
+//            } else {
+//                $fold = fopen($this->fileObject->fileTmpPath, 'r');
+//                $fnew = fopen($absolutePath, 'w+');
+//                stream_copy_to_stream($fold, $fnew);
+//                fclose($fold);
+//                fclose($fnew);
+//                //@unlink($this->fileObject->fileTmpPath);
+//                return $fr->setSuccessMsg();
+//            }
+//        } else if (!empty($this->fileObject->fileBase64)) {
+//            $fileContent = base64_decode($this->fileObject->fileBase64);
+//            $handle = fopen($absolutePath, "w+");
+//            fwrite($handle, $fileContent);
+//            fclose($handle);
+//            return $fr->setSuccessMsg();
+//        }
         return $fr->setErrorMsg();
     }
 

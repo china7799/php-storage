@@ -45,6 +45,12 @@ class FileObject {
     public $dateDir = true;
 
     /**
+     * 原文件名
+     * @var string 
+     */
+    public $oldName = '';
+    
+    /**
      * 文件名
      * @var string 
      */
@@ -140,6 +146,37 @@ class FileObject {
      * 处理文件
      */
     protected function dealFileObject() {
+        //把文件路径或者base字符串转为二进制文件内容
+        if (empty($this->fileData)) {
+            if (!empty($this->fileTmpPath)) {
+                $this->fileData = file_get_contents($this->fileTmpPath);
+            }
+            if (!empty($this->fileBase64)) {
+                $this->fileData = base64_decode($this->fileBase64);
+                //清空base64 释放内存
+                $this->fileBase64 = '';
+            }
+        }
+        if (empty($this->ext) && $this->fileObject->ext !== false) {
+            //通过文件名识别后缀
+            if(!empty($this->oldName)){
+                $ext = pathinfo($this->oldName, PATHINFO_EXTENSION);
+                if(!empty($ext)){
+                    $this->ext = $ext;
+                }
+            }
+            //通过文件内容识别后缀
+            if(empty($this->ext) && !empty($this->fileData)){
+                $finfo = new \finfo(FILEINFO_MIME_TYPE);
+                $mime = $finfo->buffer($this->fileData);
+                if (!empty($mime)) {
+                    $this->mime = $mime;
+                    $ext = MimeTypes::getExtension($mime);
+                    $this->ext = $ext;
+                }
+                unset($finfo);
+            }
+        }
         if (empty($this->filePath)) {
             if (empty($this->name)) {
                 $this->createFileName();
@@ -160,9 +197,18 @@ class FileObject {
             }
         }
         $this->fileUrl = trim($this->driver->getConfig('domain'), '/') . '/' . trim($this->filePath, '/');
-        //文件类型
-        if(empty($this->mime) && !empty($this->name)){
-            $this->mime = MimeTypes::getMimetype($this->name);
+        //通过文件后缀识别文件类型
+        if(empty($this->mime)){
+            $mime = '';
+            if(!empty($this->oldName)){
+                $mime = MimeTypes::getMimetypeByName($this->oldName);
+            }
+            else if(!empty($this->ext)){
+                $mime = MimeTypes::getMimetypeByName($this->ext);
+            }
+            if(!empty($mime)){
+                $this->mime = $mime;
+            }
         }
 //        if (empty($this->fileData)) {
 //            if (!empty($this->fileTmpPath)) {
@@ -175,6 +221,8 @@ class FileObject {
         if (empty($this->size) && !empty($this->fileData)) {
             $this->size = strlen($this->fileData);
         }
+        $this->ext = strtolower(trim($this->ext));
+        $this->mime = strtolower(trim($this->mime));
         return $this;
     }
 
@@ -183,7 +231,10 @@ class FileObject {
      */
     protected function createFileName() {
         $name = substr(md5(uniqid()), 0, 5) . date('YmdHis') . rand(0, 9999);
-        $this->name = strtolower($name . trim($this->ext));
+        $this->name = strtolower($name);
+        if(!empty($this->ext)){
+            $this->name = $this->name . '.' . trim($this->ext, '.');
+        }
     }
 
     

@@ -73,10 +73,24 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
     //        'secret_key' => '',
     //        'bucket' => '',
     //        'domain' => 'http://www.baidu.com',
-    //        'api_host' => 'http://up.qiniup.com',
+    //        'api_host' => 'up.qiniup.com',
     //        'use_ssl' => false,
     //    ],
     //]);
+
+    //又拍云
+    //$fileObject->setDriver([
+    //    'type' => 'upyun',
+    //    'config' => [
+    //        'operator' => '',
+    //        'password' => '',
+    //        'bucket' => '',
+    //        'domain' => '',
+    //        'api_host' => 'v0.api.upyun.com',
+    //        'use_ssl' => false,
+    //    ],
+    //]);
+
 
 
     //其他继承了DriverAbstract类的所有自定义类都可以
@@ -85,13 +99,16 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
 
     //上传
     //$file->fileTmpPath = 'E:/a.jpg';
+    //$file->oldName = 'a.jpg'; //原文件名 可留空
     ////$file->filePath = ''; //带后缀的新文件名称  留空自动生成
     ////$fileObject->fileBase64 = ''; //图片base64字符串 data:image/png;base64,后边的字符串
-    //$file->ext = '.jpg'; //自动生成新名称时用
+    ////$file->ext = 'jpg'; //文件后缀 留空自动获取
+    ////$file->allowExts = ['png','jpg', 'txt']; //允许的后缀
     ////$file->mime = 'image/jpeg'; //留空通过后缀自动获取
     //$file->saveDir = 'dev/test'; //保存目录
     //$file->dateDir = true; //是否自动追加日期目录
     //$file->isCover = true; //是否覆盖
+    ////$file->maxSize = 1048576; //限制文件大小
     //$bool = $file->save();
     //if($bool){
     //    //文件保存路径
@@ -117,11 +134,7 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
 
     //操作结果
     var_dump($bool);
-    //文件路径
-    var_dump($file->filePath);
-    //带域名文件路径
-    var_dump($file->fileUrl);
-    //第三方存储请求结果
+    //请求结果
     var_dump($file->getResult());
 
    ```
