@@ -1,17 +1,6 @@
 # php-storage
 文件上传
 
-安装
-------------
-
-```
-composer require phpyii/php-storage
-
-//开发版本
-composer require phpyii/php-storage:dev-master
-
-```
-
 # 简介
 
 php-storage PHP多存储驱动的文件管理类，支持多种云存储平台。
@@ -23,6 +12,23 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
 - 阿里云 OSS
 - 七牛云存储
 - 又拍云存储
+
+# 环境支持
+
+php版本 >= PHP 7.1
+
+
+安装
+------------
+
+```
+composer require phpyii/php-storage
+
+//开发版本
+composer require phpyii/php-storage:dev-master
+
+```
+
 
 # 使用方法
 
@@ -95,7 +101,7 @@ php-storage PHP多存储驱动的文件管理类，支持多种云存储平台�
 
     //其他继承了DriverAbstract类的所有自定义类都可以
     //$customClass = new CustomClass();
-    //$file->setDriver(customClass);
+    //$file->setDriver($customClass);
 
     //上传
     //$file->fileTmpPath = 'E:/a.jpg';
