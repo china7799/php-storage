@@ -90,6 +90,9 @@ class LocalDriver extends DriverAbstract {
             $handle = fopen($absolutePath, "w+");
             fwrite($handle, $this->fileObject->fileData);
             fclose($handle);
+            if(!empty($this->fileObject->fileTmpPath)){
+                @unlink($this->fileObject->fileTmpPath);
+            }
             return $fr->setSuccessMsg();
         } 
 //        else if (!empty($this->fileObject->fileTmpPath)) {
