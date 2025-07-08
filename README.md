@@ -22,10 +22,9 @@ php版本 >= PHP 7.1
 ------------
 
 ```
-composer require phpyii/php-storage
+composer require china7799/php-storage
 
-//开发版本
-composer require phpyii/php-storage:dev-master
+
 
 ```
 
