@@ -190,7 +190,7 @@ class OssDriver extends DriverAbstract {
         $policy = implode("\n", $policy);
         $signature = base64_encode(hash_hmac('sha1', $policy, $this->config['secret_key'], true));
         $data = [
-            'OSSAccessKeyId' => $this->config['access_id'],
+            'OSSAccessKeyId' => $this->config['secret_id'],
             'Expires' => $time,
             'Signature' => $signature,
         ];
