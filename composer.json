@@ -31,17 +31,6 @@
   },
   "require": {
     "php": ">=7.1.0",
-    "guzzlehttp/guzzle": "^6.0 || ^7.0",
-    "china7799/php-storage": "dev-master"
-  },
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/china7799/php-storage"
-    }
-  ],
- 
-
+    "guzzlehttp/guzzle": "^6.0 || ^7.0"
+  }
 }
