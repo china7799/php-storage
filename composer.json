@@ -1,5 +1,5 @@
 {
-  "name": "phpyii/php-storage",
+  "name": "china7799/php-storage",
   "description": "上传文件",
   "license": "MIT",
   "keywords": [
@@ -13,7 +13,7 @@
     "upload",
     "file"
   ],
-  "homepage": "https://github.com/phpyii/php-storage",
+  "homepage": "https://github.com/china7799/php-storage",
   "authors": [
     {
       "name": "lyf",
@@ -26,8 +26,8 @@
     }
   },
   "support": {
-    "issues": "https://github.com/phpyii/php-storage/issues",
-    "source": "https://github.com/phpyii/php-storage"
+    "issues": "https://github.com/china7799/php-storage/issues",
+    "source": "https://github.com/china7799/php-storage"
   },
   "require": {
     "php": ">=7.1.0",
